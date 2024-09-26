@@ -80,7 +80,6 @@ int main(void) {
 
   printf("Query format: [func] [start] [end] [numSteps]\n");
 
-  int childNumber = 0;
   while (getValidInput(&func, funcName, &rangeStart, &rangeEnd, &numSteps)) {
     sem_wait(&numFreeChildren);
 
@@ -92,8 +91,6 @@ int main(void) {
 
       _exit(0);
     }
-
-    childNumber = childNumber + 1 % MAX_CHILDREN;
   }
 
   _exit(0); // Forces more immediate exit than normal - **Use this to exit
