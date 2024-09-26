@@ -1,4 +1,4 @@
-.PHONY: run thread
+.PHONY: run thread process processThread
 
 all: run
 
@@ -11,6 +11,9 @@ serial.out: serial.c
 process.out: process.c
 	gcc process.c -Wall -Werror -Wextra -Wpedantic -o process.out -lm -lpthread
 
+processThread.out: processThread.c
+	gcc processThread.c -Wall -Werror -Wextra -Wpedantic -o processThread.out -lm -lpthread
+
 thread: thread.out serial.out exampleTestCases.txt
 	./thread.out < exampleTestCases.txt
 	./serial.out < exampleTestCases.txt
@@ -18,4 +21,7 @@ thread: thread.out serial.out exampleTestCases.txt
 process: process.out exampleTestCases.txt
 	./process.out < exampleTestCases.txt
 
-run: process
+processThread: processThread.out exampleTestCases.txt
+	./processThread.out < exampleTestCases.txt
+
+run: processThread
