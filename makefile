@@ -1,22 +1,22 @@
-.PHONY: run thread process processThread
+.PHONY: run thread process processThread clean
 
-all: run
+COMPILER_FLAGS := -Wall -Werror -Wextra -Wpedantic
+LINKER_FLAGS := -lm -lpthread
 
-thread.out: thread.c
-	gcc thread.c -Wall -Werror -Wextra -Wpedantic -o thread.out -lm -lpthread
+PROGRAMS := serial thread process processThread
 
-serial.out: serial.c
-	gcc thread.c -Wall -Werror -Wextra -Wpedantic -o thread.out -lm -lpthread
+all: PROGRAMS
 
-process.out: process.c
-	gcc process.c -Wall -Werror -Wextra -Wpedantic -o process.out -lm -lpthread
 
-processThread.out: processThread.c
-	gcc processThread.c -Wall -Werror -Wextra -Wpedantic -o processThread.out -lm -lpthread
+*.out: *.c
+	gcc $^ $(COMPILER_FLAGS) -o $@ $(LINKER_FLAGS)
 
-thread: thread.out serial.out exampleTestCases.txt
-	./thread.out < exampleTestCases.txt
+
+serial: serial.out exampleTestCases.txt
 	./serial.out < exampleTestCases.txt
+
+thread: thread.out exampleTestCases.txt
+	./thread.out < exampleTestCases.txt
 
 process: process.out exampleTestCases.txt
 	./process.out < exampleTestCases.txt
@@ -24,4 +24,3 @@ process: process.out exampleTestCases.txt
 processThread: processThread.out exampleTestCases.txt
 	./processThread.out < exampleTestCases.txt
 
-run: processThread
