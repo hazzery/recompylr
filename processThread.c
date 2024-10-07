@@ -41,24 +41,6 @@ double chargeDecay(double x) {
   }
 }
 
-// Integrate using the trapezoid method.
-// double integrateTrap(MathFunc_t *func, double rangeStart, double rangeEnd,
-//                      size_t numSteps) {
-//   double rangeSize = rangeEnd - rangeStart;
-//   double dx = rangeSize / numSteps;
-//
-//   double area = 0;
-//   for (size_t i = 0; i < numSteps; i++) {
-//     double smallx = rangeStart + i * dx;
-//     double bigx = rangeStart + (i + 1) * dx;
-//
-//     // Would be more efficient to multiply area by dx once at the end.
-//     area += dx * (func(smallx) + func(bigx)) / 2;
-//   }
-//
-//   return area;
-// }
-
 void *integrateTrap(void *threadDataPointer) {
   threadData_t *threadData = threadDataPointer;
 
@@ -122,6 +104,12 @@ int main(void) {
 
   while (getValidInput(&func, funcName, &rangeStart, &rangeEnd, &numSteps)) {
     sem_wait(&numFreeChildren);
+
+#ifdef LOGGING
+    printf("Begining computation of function \"%s\" in range %g to %g with %ll "
+           "steps\n",
+           funcName, rangeStart, rangeEnd, numSteps);
+#endif
 
     if (!fork()) {
       double increment = (rangeEnd - rangeStart) / NUMBER_OF_THREADS;

@@ -1,7 +1,6 @@
 #include <math.h>
 #include <pthread.h>
 #include <stdbool.h>
-#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -98,6 +97,12 @@ int main(void) {
 
     double area = 0;
     pthread_mutex_t areaLock = PTHREAD_MUTEX_INITIALIZER;
+
+#ifdef LOGGING
+    printf("Begining computation of function \"%s\" in range %g to %g with %ll "
+           "steps\n",
+           funcName, rangeStart, rangeEnd, numSteps);
+#endif
 
     for (int i = 0; i < NUMBER_OF_THREADS; i++) {
       threadData[i] = (threadData_t){

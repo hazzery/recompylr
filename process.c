@@ -2,7 +2,6 @@
 #include <semaphore.h>
 #include <signal.h>
 #include <stdbool.h>
-#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -82,6 +81,12 @@ int main(void) {
 
   while (getValidInput(&func, funcName, &rangeStart, &rangeEnd, &numSteps)) {
     sem_wait(&numFreeChildren);
+
+#ifdef LOGGING
+    printf("Begining computation of function \"%s\" in range %g to %g with %ll "
+           "steps\n",
+           funcName, rangeStart, rangeEnd, numSteps);
+#endif
 
     if (!fork()) {
       double area = integrateTrap(func, rangeStart, rangeEnd, numSteps);
