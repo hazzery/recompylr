@@ -9,11 +9,7 @@ BUILD_SPECIFICATION_FILE = "build_specification.toml"
 
 
 def execution_command(file_name: str) -> list[str]:
-    return [
-        build_spec["directory"] + "/" + file_name,
-        "<",
-        build_spec["example_input_file"],
-    ]
+    return ["time", build_spec["directory"] + "/" + file_name]
 
 
 async def execute_binary(file_name: str) -> None:
@@ -22,7 +18,10 @@ async def execute_binary(file_name: str) -> None:
     ).split(build_spec["delimeter"])
     command = execution_command(file_name)
     print(*command)
-    subprocess.run(command)
+    with open(build_spec["example_input_file"], "rb") as input_file:
+        process_input = input_file.read()
+    result = subprocess.run(command, capture_output=True, input=process_input)
+    print(result)
 
 
 async def main() -> None:
