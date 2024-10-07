@@ -56,3 +56,11 @@ Mkfile.old
 dkms.conf
 
 # End of https://www.toptal.com/developers/gitignore/api/c
+
+
+### Latex ###
+*.pdf
+*.aux
+*.fls
+*.fdb_latexmk
+report/*.log
