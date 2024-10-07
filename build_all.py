@@ -30,17 +30,21 @@ def compilation_command(
     thread_count: int,
     process_count: int,
 ) -> list[str]:
-    macro_definitions = ""
+    macro_definitions = []
 
     if thread_count is not None:
-        macro_definitions += "-D THREAD_COUNT=" + str(thread_count)
+        macro_definitions.append("-D THREAD_COUNT=" + str(thread_count))
 
     if process_count is not None:
-        macro_definitions += "-D PROCESS_COUNT=" + str(process_count)
+        macro_definitions.append("-D PROCESS_COUNT=" + str(process_count))
+
+    if build_spec["logging"]:
+        macro_definitions.append("-D LOGGING")
 
     return (
         [COMPILER_NAME, sourceFile(program_name)]
         + COMPILER_FLAGS
+        + macro_definitions
         + [
             "-o",
             binaryFile(program_name, thread_count, process_count),
