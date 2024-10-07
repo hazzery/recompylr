@@ -19,18 +19,16 @@ def sourceFile(program_name: str) -> str:
 
 def binaryFile(
     program_name: str,
-    *,
-    thread_count: int | None = None,
-    process_count: int | None = None,
+    thread_count: int,
+    process_count: int,
 ) -> str:
     return f"{build_spec['directory']}/{program_name}{build_spec['delimeter']}{thread_count}t-{process_count}p{build_spec['extension']}"
 
 
 def compilation_command(
     program_name: str,
-    *,
-    thread_count: int | None = None,
-    process_count: int | None = None,
+    thread_count: int,
+    process_count: int,
 ) -> list[str]:
     macro_definitions = ""
 
@@ -45,9 +43,7 @@ def compilation_command(
         + COMPILER_FLAGS
         + [
             "-o",
-            binaryFile(
-                program_name, thread_count=thread_count, process_count=process_count
-            ),
+            binaryFile(program_name, thread_count, process_count),
         ]
         + LINKER_FLAGS
     )
@@ -56,14 +52,12 @@ def compilation_command(
 async def compile_program(
     program_name: str,
     *,
-    thread_count: int | None = None,
-    process_count: int | None = None,
+    thread_count: int = 1,
+    process_count: int = 1,
 ) -> None:
-    subprocess.run(
-        compilation_command(
-            program_name, thread_count=thread_count, process_count=process_count
-        )
-    )
+    task = compilation_command(program_name, thread_count, process_count)
+    print(*task)
+    subprocess.run(task)
 
 
 async def main() -> None:
