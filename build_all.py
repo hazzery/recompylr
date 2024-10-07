@@ -1,4 +1,5 @@
 import asyncio
+import toml
 import os
 import subprocess
 
@@ -9,7 +10,7 @@ COMPILER_NAME = "gcc"
 COMPILER_FLAGS = ["-Wall", "-Werror", "-Wextra", "-Wpedantic"]
 LINKER_FLAGS = ["-lm", "-lpthread"]
 
-BUILD_OUTPUT_DIRECTORY = "build"
+BUILD_SPECIFICATION_FILE = "build_specification.toml"
 
 
 def sourceFile(program_name: str) -> str:
@@ -22,7 +23,7 @@ def binaryFile(
     thread_count: int | None = None,
     process_count: int | None = None,
 ) -> str:
-    return f"{BUILD_OUTPUT_DIRECTORY}/{program_name}-{thread_count if thread_count else '1'}t-{process_count if process_count else ''}p.out"
+    return f"{build_spec['directory']}/{program_name}{build_spec['delimeter']}{thread_count}t-{process_count}p{build_spec['extension']}"
 
 
 def compilation_command(
@@ -84,9 +85,10 @@ async def main() -> None:
         for process_count in PROCESS_COUNTS
     ]
 
-    os.mkdir(BUILD_OUTPUT_DIRECTORY)
+    os.makedirs(build_spec["directory"], exist_ok=True)
     await asyncio.gather(*tasks)
 
 
 if __name__ == "__main__":
+    build_spec = toml.load(BUILD_SPECIFICATION_FILE)["config"]
     asyncio.run(main())
