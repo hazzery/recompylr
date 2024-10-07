@@ -73,7 +73,7 @@ int main(void) {
   while (getValidInput(&func, funcName, &rangeStart, &rangeEnd, &numSteps)) {
 
 #ifdef LOGGING
-    printf("Begining computation of function \"%s\" in range %g to %g with %ll "
+    printf("Begining computation of function \"%s\" in range %g to %g with %zu "
            "steps\n",
            funcName, rangeStart, rangeEnd, numSteps);
 #endif

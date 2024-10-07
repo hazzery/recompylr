@@ -99,7 +99,7 @@ int main(void) {
     pthread_mutex_t areaLock = PTHREAD_MUTEX_INITIALIZER;
 
 #ifdef LOGGING
-    printf("Begining computation of function \"%s\" in range %g to %g with %ll "
+    printf("Begining computation of function \"%s\" in range %g to %g with %zu "
            "steps\n",
            funcName, rangeStart, rangeEnd, numSteps);
 #endif

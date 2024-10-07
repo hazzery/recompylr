@@ -106,7 +106,7 @@ int main(void) {
     sem_wait(&numFreeChildren);
 
 #ifdef LOGGING
-    printf("Begining computation of function \"%s\" in range %g to %g with %ll "
+    printf("Begining computation of function \"%s\" in range %g to %g with %zu "
            "steps\n",
            funcName, rangeStart, rangeEnd, numSteps);
 #endif
