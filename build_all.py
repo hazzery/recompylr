@@ -32,10 +32,10 @@ def compilation_command(
 ) -> list[str]:
     macro_definitions = []
 
-    if thread_count is not None:
+    if thread_count != 1:
         macro_definitions.append("-D THREAD_COUNT=" + str(thread_count))
 
-    if process_count is not None:
+    if process_count != 1:
         macro_definitions.append("-D PROCESS_COUNT=" + str(process_count))
 
     if build_spec["logging"]:
