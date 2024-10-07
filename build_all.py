@@ -19,7 +19,7 @@ def binaryFile(
     thread_count: int | None = None,
     process_count: int | None = None,
 ) -> str:
-    return f"{program_name}-{thread_count}t-{process_count}p.out"
+    return f"{program_name}-{thread_count if thread_count else "1"}t-{process_count if process_count else ""}p.out"
 
 
 def compilation_command(
