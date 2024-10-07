@@ -24,3 +24,6 @@ process: process.out exampleTestCases.txt
 processThread: processThread.out exampleTestCases.txt
 	./processThread.out < exampleTestCases.txt
 
+clean:
+	rm process*.out thread*.out serial*.out
+
