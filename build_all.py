@@ -15,16 +15,18 @@ def sourceFile(program_name: str) -> str:
 
 def binaryFile(
     program_name: str,
-    thread_count: int,
-    process_count: int,
+    *,
+    thread_count: int | None = None,
+    process_count: int | None = None,
 ) -> str:
     return f"{program_name}-{thread_count}t-{process_count}p.out"
 
 
 def compilation_command(
     program_name: str,
-    thread_count: int,
-    process_count: int,
+    *,
+    thread_count: int | None = None,
+    process_count: int | None = None,
 ) -> list[str]:
     macro_definitions = ""
 
@@ -37,15 +39,21 @@ def compilation_command(
     return (
         [COMPILER_NAME, sourceFile(program_name)]
         + COMPILER_FLAGS
-        + ["-o", binaryFile(program_name, thread_count, process_count)]
+        + [
+            "-o",
+            binaryFile(
+                program_name, thread_count=thread_count, process_count=process_count
+            ),
+        ]
         + LINKER_FLAGS
     )
 
 
 async def compile_program(
     program_name: str,
-    thread_count: int,
-    process_count: int,
+    *,
+    thread_count: int | None = None,
+    process_count: int | None = None,
 ) -> None:
     subprocess.run(
         compilation_command(
@@ -56,10 +64,21 @@ async def compile_program(
 
 async def main() -> None:
     tasks = [
-        compile_program(program_name, thread_count, process_count)
+        compile_program("thread", thread_count=thread_count)
+        for thread_count in THREAD_COUNTS
+    ]
+
+    tasks += [
+        compile_program("process", process_count=process_count)
+        for process_count in PROCESS_COUNTS
+    ]
+
+    tasks += [
+        compile_program(
+            "processThread", thread_count=thread_count, process_count=process_count
+        )
         for thread_count in THREAD_COUNTS
         for process_count in PROCESS_COUNTS
-        for program_name in PROGRAM_NAMES
     ]
 
     await asyncio.gather(*tasks)
