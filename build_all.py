@@ -1,4 +1,5 @@
 import asyncio
+import os
 import subprocess
 
 THREAD_COUNTS = [2, 4, 8, 16, 32, 64]
@@ -7,6 +8,8 @@ PROGRAM_NAMES = ["serial", "thread", "process", "processThread"]
 COMPILER_NAME = "gcc"
 COMPILER_FLAGS = ["-Wall", "-Werror", "-Wextra", "-Wpedantic"]
 LINKER_FLAGS = ["-lm", "-lpthread"]
+
+BUILD_OUTPUT_DIRECTORY = "build"
 
 
 def sourceFile(program_name: str) -> str:
@@ -19,7 +22,7 @@ def binaryFile(
     thread_count: int | None = None,
     process_count: int | None = None,
 ) -> str:
-    return f"{program_name}-{thread_count if thread_count else '1'}t-{process_count if process_count else ''}p.out"
+    return f"{BUILD_OUTPUT_DIRECTORY}/{program_name}-{thread_count if thread_count else '1'}t-{process_count if process_count else ''}p.out"
 
 
 def compilation_command(
@@ -81,6 +84,7 @@ async def main() -> None:
         for process_count in PROCESS_COUNTS
     ]
 
+    os.mkdir(BUILD_OUTPUT_DIRECTORY)
     await asyncio.gather(*tasks)
 
 
