@@ -37,12 +37,11 @@ async def time_binary_execution(file_name: str) -> None:
     with open(build_spec["example_input_file"], "rb") as input_file:
         process_input = input_file.read()
 
-    # result = subprocess.run(command, capture_output=True, input=process_input)
-    result = subprocess.run(command, input=process_input)
+    subprocess.run(command, input=process_input, check=False)
 
-    # real, user, sys = result.stderr.decode().splitlines()
-    with open(f"txt/{file_name}.txt", "r") as output_file:
+    with open(f"txt/{file_name}.txt") as output_file:
         real, user, sys = output_file.read().splitlines()
+
     print(real, user, sys)
     real_time = float(real.removeprefix("real "))
     user_time = float(user.removeprefix("user "))
