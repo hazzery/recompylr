@@ -13,7 +13,9 @@ typedef double MathFunc_t(double);
 static sem_t numFreeChildren;
 static size_t numCurrentChildren = 0;
 
-void childCompletedSignalHandler(int _) {
+void childCompletedSignalHandler(int signalNumber) {
+  (void)signalNumber; // Ignore the signalNumber parameter
+
   numCurrentChildren--;
   sem_post(&numFreeChildren);
 }
