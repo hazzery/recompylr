@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/wait.h>
 #include <unistd.h>
 
 #define MAX_CHILDREN 3
@@ -24,10 +25,14 @@ typedef struct {
 } threadData_t;
 
 static sem_t numFreeChildren;
+static size_t numCurrentChildren = 0;
 
 static inline double minimum(double a, double b) { return a > b ? b : a; }
 
-void childCompletedSignalHandler() { sem_post(&numFreeChildren); }
+void childCompletedSignalHandler() {
+  numCurrentChildren--;
+  sem_post(&numFreeChildren);
+}
 
 double gaussian(double x) { return exp(-(x * x) / 2) / (sqrt(2 * M_PI)); }
 
@@ -136,6 +141,10 @@ int main(void) {
 
       printf("The integral of function \"%s\" in range %g to %g is %.10g\n",
              funcName, rangeStart, rangeEnd, area);
+
+      while (numCurrentChildren > 0) {
+        wait(NULL);
+      }
 
       _exit(0);
     }

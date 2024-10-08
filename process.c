@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/wait.h>
 #include <unistd.h>
 
 #define MAX_CHILDREN 3
@@ -12,8 +13,12 @@
 typedef double MathFunc_t(double);
 
 static sem_t numFreeChildren;
+static size_t numCurrentChildren = 0;
 
-void childCompletedSignalHandler() { sem_post(&numFreeChildren); }
+void childCompletedSignalHandler() {
+  numCurrentChildren--;
+  sem_post(&numFreeChildren);
+}
 
 double gaussian(double x) { return exp(-(x * x) / 2) / (sqrt(2 * M_PI)); }
 
@@ -88,6 +93,7 @@ int main(void) {
            funcName, rangeStart, rangeEnd, numSteps);
 #endif
 
+    numCurrentChildren++;
     if (!fork()) {
       double area = integrateTrap(func, rangeStart, rangeEnd, numSteps);
 
@@ -96,6 +102,10 @@ int main(void) {
 
       _exit(0);
     }
+  }
+
+  while (numCurrentChildren > 0) {
+    wait(NULL);
   }
 
   _exit(0); // Forces more immediate exit than normal - **Use this to exit
