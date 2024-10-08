@@ -3,13 +3,17 @@
 COMPILER_FLAGS := -Wall -Werror -Wextra -Wpedantic
 LINKER_FLAGS := -lm -lpthread
 
-PROGRAMS := serial thread process processThread
+all: run
 
-all: PROGRAMS
+run: build/
+	python3 execute_all.py
 
+build/:
+	source venv/bin/activate
+	python3 build_all.py
 
-*.out: *.c
-	gcc $^ $(COMPILER_FLAGS) -o $@ $(LINKER_FLAGS)
+%.out: %.c
+	gcc $^ $(COMPILER_FLAGS) -D MAX_CHILDREN=12 -D NUMBER_OF_THREADS=12 -o $@ $(LINKER_FLAGS)
 
 
 serial: serial.out exampleTestCases.txt
@@ -26,4 +30,7 @@ processThread: processThread.out exampleTestCases.txt
 
 clean:
 	rm -r build/
+	rm -f processThread.out
+	rm -f process.out
+	rm -f thread.out
 
