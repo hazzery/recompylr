@@ -26,8 +26,5 @@ processThread: processThread.out exampleTestCases.txt
 	./processThread.out < exampleTestCases.txt
 
 clean:
-	rm -r build/
-	rm -f processThread.out
-	rm -f process.out
-	rm -f thread.out
+	rm **/*.out
 

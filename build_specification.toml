@@ -1,6 +1,6 @@
 [config]
 delimeter = "-"
 extension = ".out"
-directory = "build"
+directory = "bin"
 logging = true
 example_input_file = "exampleTestCases.txt"
