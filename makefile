@@ -3,14 +3,11 @@
 COMPILER_FLAGS := -Wall -Werror -Wextra -Wpedantic
 LINKER_FLAGS := -lm -lpthread
 
-all: run
-
-run: build/
-	python3 execute_all.py
-
-build/:
-	source venv/bin/activate
+all:
 	python3 build_all.py
+
+run:
+	python3 execute_all.py
 
 %.out: %.c
 	gcc $^ $(COMPILER_FLAGS) -D MAX_CHILDREN=12 -D NUMBER_OF_THREADS=12 -o $@ $(LINKER_FLAGS)
