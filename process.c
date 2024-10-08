@@ -11,12 +11,10 @@
 typedef double MathFunc_t(double);
 
 static sem_t numFreeChildren;
-static size_t numCurrentChildren = 0;
 
 void childCompletedSignalHandler(int signalNumber) {
   (void)signalNumber; // Ignore the signalNumber parameter
 
-  numCurrentChildren--;
   sem_post(&numFreeChildren);
 }
 
@@ -80,7 +78,10 @@ int main(void) {
   char funcName[10] = {'\0'};
 
   sem_init(&numFreeChildren, 0, MAX_CHILDREN);
-  signal(SIGCHLD, &childCompletedSignalHandler);
+
+  struct sigaction childCompleted = {0};
+  childCompleted.sa_handler = &childCompletedSignalHandler;
+  sigaction(SIGCHLD, &childCompleted, NULL);
 
   printf("Query format: [func] [start] [end] [numSteps]\n");
 
@@ -93,7 +94,6 @@ int main(void) {
            funcName, rangeStart, rangeEnd, numSteps);
 #endif
 
-    numCurrentChildren++;
     if (!fork()) {
       double area = integrateTrap(func, rangeStart, rangeEnd, numSteps);
 
@@ -102,10 +102,6 @@ int main(void) {
 
       _exit(0);
     }
-  }
-
-  while (numCurrentChildren > 0) {
-    wait(NULL);
   }
 
   _exit(0); // Forces more immediate exit than normal - **Use this to exit
