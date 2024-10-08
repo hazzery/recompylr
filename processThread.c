@@ -115,6 +115,7 @@ int main(void) {
            funcName, rangeStart, rangeEnd, numSteps);
 #endif
 
+    numCurrentChildren++;
     if (!fork()) {
       double increment = (rangeEnd - rangeStart) / NUMBER_OF_THREADS;
 
