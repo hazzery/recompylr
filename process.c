@@ -8,14 +8,12 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-#define MAX_CHILDREN 3
-
 typedef double MathFunc_t(double);
 
 static sem_t numFreeChildren;
 static size_t numCurrentChildren = 0;
 
-void childCompletedSignalHandler() {
+void childCompletedSignalHandler(int _) {
   numCurrentChildren--;
   sem_post(&numFreeChildren);
 }

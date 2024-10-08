@@ -6,8 +6,6 @@
 #include <string.h>
 #include <unistd.h>
 
-#define NUMBER_OF_THREADS 16
-
 typedef double MathFunc_t(double);
 
 typedef struct {

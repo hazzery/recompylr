@@ -9,9 +9,6 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-#define MAX_CHILDREN 3
-#define NUMBER_OF_THREADS 16
-
 typedef double MathFunc_t(double);
 
 typedef struct {
@@ -28,7 +25,7 @@ static size_t numCurrentChildren = 0;
 
 static inline double minimum(double a, double b) { return a > b ? b : a; }
 
-void childCompletedSignalHandler() {
+void childCompletedSignalHandler(int _) {
   numCurrentChildren--;
   sem_post(&numFreeChildren);
 }
