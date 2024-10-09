@@ -11,11 +11,11 @@ LINKER_FLAGS = ["-lm", "-lpthread"]
 BUILD_SPECIFICATION_FILE = "build_specification.toml"
 
 
-def sourceFile(program_name: str) -> str:
+def source_file(program_name: str) -> str:
     return program_name + ".c"
 
 
-def binaryFile(
+def binary_file(
     program_name: str,
     thread_count: int,
     process_count: int,
@@ -39,16 +39,15 @@ def compilation_command(
     if build_spec["logging"]:
         macro_definitions.append("-D LOGGING")
 
-    return (
-        [COMPILER_NAME, sourceFile(program_name)]
-        + COMPILER_FLAGS
-        + macro_definitions
-        + [
-            "-o",
-            binaryFile(program_name, thread_count, process_count),
-        ]
-        + LINKER_FLAGS
-    )
+    return [
+        COMPILER_NAME,
+        source_file(program_name),
+        *COMPILER_FLAGS,
+        *macro_definitions,
+        "-o",
+        binary_file(program_name, thread_count, process_count),
+        *LINKER_FLAGS,
+    ]
 
 
 async def compile_program(
@@ -59,7 +58,7 @@ async def compile_program(
 ) -> None:
     task = compilation_command(program_name, thread_count, process_count)
     print(*task)
-    subprocess.run(task)
+    subprocess.run(task, check=False)
 
 
 async def main() -> None:
