@@ -2,7 +2,7 @@
 delimeter = "-"
 extension = ".out"
 directory = "bin"
-logging = true
+logging = false
 example_input_file = "exampleTestCases.txt"
-process_counts = [2, 4, 5, 6, 8, 10, 12, 14, 16, 18, 20]
-thread_counts = [2, 4, 5, 6, 8, 10, 12, 14, 16, 18, 20]
+process_counts = [2, 4, 6, 8, 10, 12, 14, 16, 18, 20]
+thread_counts = [2, 4, 6, 8, 10, 12, 14, 16, 18, 20]
