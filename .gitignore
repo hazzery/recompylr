@@ -71,3 +71,6 @@ report/*.log
 
 ### Python ###
 venv/
+
+# generated matplotlib graphs
+*.png
