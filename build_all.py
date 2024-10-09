@@ -3,8 +3,6 @@ import toml
 import os
 import subprocess
 
-THREAD_COUNTS = [2, 4, 8, 16, 32, 64]
-PROCESS_COUNTS = [2, 4, 6, 8, 10, 12]
 PROGRAM_NAMES = ["serial", "thread", "process", "processThread"]
 COMPILER_NAME = "gcc"
 COMPILER_FLAGS = ["-Wall", "-Werror", "-Wextra", "-Wpedantic"]
@@ -67,20 +65,20 @@ async def compile_program(
 async def main() -> None:
     tasks = [
         compile_program("thread", thread_count=thread_count)
-        for thread_count in THREAD_COUNTS
+        for thread_count in build_spec["thread_counts"]
     ]
 
     tasks += [
         compile_program("process", process_count=process_count)
-        for process_count in PROCESS_COUNTS
+        for process_count in build_spec["process_counts"]
     ]
 
     tasks += [
         compile_program(
             "processThread", thread_count=thread_count, process_count=process_count
         )
-        for thread_count in THREAD_COUNTS
-        for process_count in PROCESS_COUNTS
+        for thread_count in build_spec["thread_counts"]
+        for process_count in build_spec["process_counts"]
     ]
 
     os.makedirs(build_spec["directory"], exist_ok=True)
