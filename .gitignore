@@ -60,6 +60,8 @@ dkms.conf
 # Compilation Databas
 compile_commands.json
 
+# ClangD cache directory
+.cache/
 
 ### Latex ###
 *.pdf
@@ -71,6 +73,10 @@ report/*.log
 
 ### Python ###
 venv/
+__pycache__/
 
-# generated matplotlib graphs
+# Generated matplotlib graphs
 *.png
+
+# Pickled execution time dictionary
+*.bin
