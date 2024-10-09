@@ -21,14 +21,12 @@ typedef struct {
 } threadData_t;
 
 static sem_t numFreeChildren;
-static size_t numCurrentChildren = 0;
 
 static inline double minimum(double a, double b) { return a > b ? b : a; }
 
 void childCompletedSignalHandler(int signalNumber) {
   (void)signalNumber; // Ignore the signal number parameter
 
-  numCurrentChildren--;
   sem_post(&numFreeChildren);
 }
 
@@ -101,7 +99,10 @@ int main(void) {
   pthread_t threads[NUMBER_OF_THREADS] = {0};
 
   sem_init(&numFreeChildren, 0, MAX_CHILDREN);
-  signal(SIGCHLD, &childCompletedSignalHandler);
+
+  struct sigaction childCompleted = {0};
+  childCompleted.sa_handler = &childCompletedSignalHandler;
+  sigaction(SIGCHLD, &childCompleted, NULL);
 
   printf("Query format: [func] [start] [end] [numSteps]\n");
 
@@ -114,7 +115,6 @@ int main(void) {
            funcName, rangeStart, rangeEnd, numSteps);
 #endif
 
-    numCurrentChildren++;
     if (!fork()) {
       double increment = (rangeEnd - rangeStart) / NUMBER_OF_THREADS;
 
@@ -140,10 +140,6 @@ int main(void) {
 
       printf("The integral of function \"%s\" in range %g to %g is %.10g\n",
              funcName, rangeStart, rangeEnd, area);
-
-      while (numCurrentChildren > 0) {
-        wait(NULL);
-      }
 
       _exit(0);
     }
