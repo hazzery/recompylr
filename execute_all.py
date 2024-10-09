@@ -3,12 +3,16 @@ import pprint
 import toml
 import asyncio
 import subprocess
-# import matplotlib
+import pickle
 
 
 BUILD_SPECIFICATION_FILE = "build_specification.toml"
 
-map: dict[tuple[str, int, int], tuple[float, float, float]] = {}
+ProgramName = str
+BinarySpecifier = tuple[int, int]
+TimeReading = tuple[float, float, float]
+
+map: dict[ProgramName, dict[BinarySpecifier, TimeReading]] = {}
 
 
 def execution_command(file_name: str) -> list[str]:
@@ -25,8 +29,7 @@ async def time_binary_execution(file_name: str) -> None:
         build_spec["extension"]
     ).split(build_spec["delimeter"])
 
-    binary_identifier = (
-        program_name,
+    binary_specifier = (
         int(thread_count.removesuffix("t")),
         int(process_count.removesuffix("p")),
     )
@@ -47,8 +50,10 @@ async def time_binary_execution(file_name: str) -> None:
     user_time = float(user.removeprefix("user "))
     sys_time = float(sys.removeprefix("sys "))
 
-    # print(real_time, user_time, sys_time)
-    map[binary_identifier] = (real_time, user_time, sys_time)
+    if program_name not in map:
+        map[program_name] = {}
+
+    map[program_name][binary_specifier] = (real_time, user_time, sys_time)
 
 
 async def main() -> None:
@@ -58,6 +63,9 @@ async def main() -> None:
     ]
 
     await asyncio.gather(*tasks)
+
+    with open("binary_execution_times.bin", "wb") as output_file:
+        pickle.dump(map, output_file)
 
     pprint.pprint(map)
 
