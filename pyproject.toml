@@ -3,12 +3,7 @@ name = "ENCE360_assignment"
 version = "1.0.0"
 authors = [{ name = "Harry Parkes", email = "harrydparkes@proton.me" }]
 readme = "README.md"
-requires-python = ">=3.10"
-classifiers = [
-  "Programming Language :: Python :: 3",
-  "License :: OSI Approved :: GNU AGPL",
-  "Operating System :: GNU Linux",
-]
+dependencies = ["toml", "matplotlib"]
 
 [tool.ruff.lint]
 # Enable Pyflakes (`F`) and a subset of the pycodestyle (`E`) codes
