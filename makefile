@@ -1,4 +1,4 @@
-.PHONY: run thread process processThread clean
+.PHONY: run thread process processThread clean draw
 
 COMPILER_FLAGS := -Wall -Werror -Wextra -Wpedantic
 LINKER_FLAGS := -lm -lpthread
@@ -8,6 +8,9 @@ all:
 
 run:
 	python3 execute_all.py
+
+draw:
+	python3 draw_graphs.py
 
 %.out: %.c
 	gcc $^ $(COMPILER_FLAGS) -D MAX_CHILDREN=12 -D NUMBER_OF_THREADS=12 -o $@ $(LINKER_FLAGS)
