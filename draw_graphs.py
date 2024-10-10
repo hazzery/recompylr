@@ -1,29 +1,14 @@
 import pickle
 
+import toml
 from matplotlib import pyplot
-from execute_all import ProgramName, BinarySpecifier, TimeReading
+
+from execute_all import BinarySpecifier, ProgramName, TimeReading
+
+BUILD_SPECIFICATION_FILE = "build_specification.toml"
 
 
-def main() -> None:
-    with open("binary_execution_times.bin", "rb") as input_file:
-        map: dict[ProgramName, dict[BinarySpecifier, TimeReading]]
-        map = pickle.load(input_file)
-
-    # Thread program graph
-    figure, axes = pyplot.subplots()
-
-    x_axis = sorted([thread_count for thread_count, _ in map["thread"]])
-    y_axis = [map["thread"][(thread_count, 1)][0] for thread_count in x_axis]
-
-    axes.set_title("thread.c running times.")
-    axes.set_xlabel("Number of worker threads")
-    axes.set_ylabel("Execution time (seconds)")
-    axes.set_xticks(x_axis)
-    axes.plot(x_axis, y_axis)
-
-    figure.savefig("thread_graph.png")
-
-    # Process program graph
+def draw_process(map: dict[ProgramName, dict[BinarySpecifier, TimeReading]]):
     figure, axes = pyplot.subplots()
 
     x_axis = sorted([process_count for _, process_count in map["process"]])
@@ -37,7 +22,8 @@ def main() -> None:
 
     figure.savefig("process_graph.png")
 
-    # ProcessThread program graph
+
+def draw_process_thread(map: dict[ProgramName, dict[BinarySpecifier, TimeReading]]):
     figure = pyplot.figure()
     axes = figure.add_subplot(projection="3d")
 
@@ -66,5 +52,36 @@ def main() -> None:
     figure.savefig("processThread_graph.png")
 
 
+def draw_thread(map: dict[ProgramName, dict[BinarySpecifier, TimeReading]]):
+    figure, axes = pyplot.subplots()
+
+    x_axis = sorted([thread_count for thread_count, _ in map["thread"]])
+    y_axis = [map["thread"][(thread_count, 1)][0] for thread_count in x_axis]
+
+    axes.set_title("thread.c running times.")
+    axes.set_xlabel("Number of worker threads")
+    axes.set_ylabel("Execution time (seconds)")
+    axes.set_xticks(x_axis)
+    axes.plot(x_axis, y_axis)
+
+    figure.savefig("thread_graph.png")
+
+
+def main() -> None:
+    with open("binary_execution_times.bin", "rb") as input_file:
+        map: dict[ProgramName, dict[BinarySpecifier, TimeReading]]
+        map = pickle.load(input_file)
+
+    if "thread" not in build_spec["skip"]:
+        draw_thread(map)
+
+    if "process" not in build_spec["skip"]:
+        draw_process(map)
+
+    if "processThread" not in build_spec["skip"]:
+        draw_process_thread(map)
+
+
 if __name__ == "__main__":
+    build_spec = toml.load(BUILD_SPECIFICATION_FILE)["config"]
     main()
