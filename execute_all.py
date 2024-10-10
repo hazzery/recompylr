@@ -1,10 +1,9 @@
-import os
-import pprint
-import toml
 import asyncio
-import subprocess
+import os
 import pickle
+import subprocess
 
+import toml
 
 BUILD_SPECIFICATION_FILE = "build_specification.toml"
 
@@ -71,12 +70,14 @@ async def main() -> None:
         for file_name in os.listdir(build_spec["directory"])
     ]
 
+    os.mkdir("txt")
+
     await asyncio.gather(*tasks)
+
+    os.rmdir("txt")
 
     with open("binary_execution_times.bin", "wb") as output_file:
         pickle.dump(map, output_file)
-
-    pprint.pprint(map)
 
 
 if __name__ == "__main__":
