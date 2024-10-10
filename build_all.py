@@ -12,6 +12,12 @@ BUILD_SPECIFICATION_FILE = "build_specification.toml"
 
 
 def source_file(program_name: str) -> str:
+    """Get the name of the source file for the given program.
+
+    :program_name: The name of the program to find the source file of.
+
+    :return: The name of the source file as a string.
+    """
     return program_name + ".c"
 
 
@@ -20,6 +26,14 @@ def binary_file(
     thread_count: int,
     process_count: int,
 ) -> str:
+    """Create the name of the binary file to generate for a given program.
+
+    :program_name: The name of the source file to compile.
+    :thread_count: The number of threads to allow the program to use.
+    :process_count: The maximum number of children process to allow the program to spawn.
+
+    :return: The name of the file as a string.
+    """
     return f"{build_spec['directory']}/{program_name}{build_spec['delimeter']}{thread_count}t-{process_count}p{build_spec['extension']}"
 
 
@@ -28,6 +42,14 @@ def compilation_command(
     thread_count: int,
     process_count: int,
 ) -> list[str]:
+    """Generate the command used to compile the specified program.
+
+    :program_name: The name of the source file to compile.
+    :thread_count: The number of threads to allow the program to use.
+    :process_count: The maximum number of children process to allow the program to spawn.
+
+    :return: The shell command as a list of strings
+    """
     macro_definitions = []
 
     if thread_count != 1:
@@ -56,6 +78,12 @@ async def compile_program(
     thread_count: int = 1,
     process_count: int = 1,
 ) -> None:
+    """Execute the compilation of the specified program.
+
+    :program_name: The name of the source file to compile.
+    :thread_count: The number of threads to allow the program to use.
+    :process_count: The maximum number of children process to allow the program to spawn.
+    """
     task = compilation_command(program_name, thread_count, process_count)
     print(*task)
     subprocess.run(task, check=False)
