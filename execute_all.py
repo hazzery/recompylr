@@ -75,7 +75,10 @@ async def main() -> None:
 
     await asyncio.gather(*tasks)
 
-    shutil.rmtree("txt")
+    try:
+        shutil.rmtree("txt")
+    except OSError:
+        pass
 
     with open("binary_execution_times.bin", "wb") as output_file:
         pickle.dump(map, output_file)
