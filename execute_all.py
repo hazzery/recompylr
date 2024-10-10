@@ -16,6 +16,11 @@ map: dict[ProgramName, dict[BinarySpecifier, TimeReading]] = {}
 
 
 def execution_command(file_name: str) -> list[str]:
+    """Generate the command used to time execution of the specified binary.
+
+    :param file_name: The name of the binary to time execution of.
+    :return: The execution command as a list of strings.
+    """
     return [
         "time",
         "--portability",
@@ -25,6 +30,10 @@ def execution_command(file_name: str) -> list[str]:
 
 
 async def time_binary_execution(file_name: str) -> None:
+    """Time the execution of the specified binary executable.
+
+    :param file_name: The name of the binary file to execute.
+    """
     program_name, thread_count, process_count = file_name.removesuffix(
         build_spec["extension"]
     ).split(build_spec["delimeter"])
