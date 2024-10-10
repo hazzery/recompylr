@@ -9,6 +9,10 @@ BUILD_SPECIFICATION_FILE = "build_specification.toml"
 
 
 def draw_process(map: dict[ProgramName, dict[BinarySpecifier, TimeReading]]):
+    """Draw the execution time graph for process.c.
+
+    :param map: Pointer to the dictionary containing execution time data.
+    """
     figure, axes = pyplot.subplots()
 
     x_axis = sorted([process_count for _, process_count in map["process"]])
@@ -24,6 +28,10 @@ def draw_process(map: dict[ProgramName, dict[BinarySpecifier, TimeReading]]):
 
 
 def draw_process_thread(map: dict[ProgramName, dict[BinarySpecifier, TimeReading]]):
+    """Draw the execution time graph for processThread.c.
+
+    :param map: Pointer to the dictionary containing execution time data.
+    """
     figure = pyplot.figure()
     axes = figure.add_subplot(projection="3d")
 
@@ -53,6 +61,10 @@ def draw_process_thread(map: dict[ProgramName, dict[BinarySpecifier, TimeReading
 
 
 def draw_thread(map: dict[ProgramName, dict[BinarySpecifier, TimeReading]]):
+    """Draw the execution time graph for threa.c.
+
+    :param map: Pointer to the dictionary containing execution time data.
+    """
     figure, axes = pyplot.subplots()
 
     x_axis = sorted([thread_count for thread_count, _ in map["thread"]])
