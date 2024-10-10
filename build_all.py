@@ -90,23 +90,28 @@ async def compile_program(
 
 
 async def main() -> None:
-    tasks = [
-        compile_program("thread", thread_count=thread_count)
-        for thread_count in build_spec["thread_counts"]
-    ]
+    tasks = []
 
-    tasks += [
-        compile_program("process", process_count=process_count)
-        for process_count in build_spec["process_counts"]
-    ]
+    if "thread" not in build_spec["skip"]:
+        tasks += [
+            compile_program("thread", thread_count=thread_count)
+            for thread_count in build_spec["thread_counts"]
+        ]
 
-    tasks += [
-        compile_program(
-            "processThread", thread_count=thread_count, process_count=process_count
-        )
-        for thread_count in build_spec["thread_counts"]
-        for process_count in build_spec["process_counts"]
-    ]
+    if "process" not in build_spec["skip"]:
+        tasks += [
+            compile_program("process", process_count=process_count)
+            for process_count in build_spec["process_counts"]
+        ]
+
+    if "processThread" not in build_spec["skip"]:
+        tasks += [
+            compile_program(
+                "processThread", thread_count=thread_count, process_count=process_count
+            )
+            for thread_count in build_spec["thread_counts"]
+            for process_count in build_spec["process_counts"]
+        ]
 
     os.makedirs(build_spec["directory"], exist_ok=True)
     await asyncio.gather(*tasks)
