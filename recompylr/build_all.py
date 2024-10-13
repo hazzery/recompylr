@@ -1,12 +1,11 @@
 import asyncio
-import toml
+import itertools
 import os
+import pathlib
 import subprocess
+from typing import Any, Sequence
 
-PROGRAM_NAMES = ["serial", "thread", "process", "processThread"]
-COMPILER_NAME = "gcc"
-COMPILER_FLAGS = ["-Wall", "-Werror", "-Wextra", "-Wpedantic"]
-LINKER_FLAGS = ["-lm", "-lpthread"]
+import toml
 
 BUILD_SPECIFICATION_FILE = "build_specification.toml"
 
@@ -62,13 +61,13 @@ def compilation_command(
         macro_definitions.append("-D LOGGING")
 
     return [
-        COMPILER_NAME,
+        build_spec["compiler"],
         source_file(program_name),
-        *COMPILER_FLAGS,
+        *build_spec["compilation_flags"],
         *macro_definitions,
         "-o",
         binary_file(program_name, thread_count, process_count),
-        *LINKER_FLAGS,
+        *build_spec["linker_flags"],
     ]
 
 
@@ -87,6 +86,46 @@ async def compile_program(
     task = compilation_command(program_name, thread_count, process_count)
     print(*task)
     subprocess.run(task, check=False)
+
+
+def list_program_definitions() -> dict[str, dict[str, Any]]:
+    programs = {}
+
+    global_definitions: dict[str, Any] = build_spec["compilation"]["definitions"]
+    for path in pathlib.Path(
+        build_spec["compilation"]["source_file_directory"]
+    ).iterdir():
+        program_specific_configuration = (
+            build_spec["compilation"].get("programs", {}).get(path.stem, {})
+        )
+
+        if program_specific_configuration.get("skip", False):
+            continue
+
+        program_specific_definitions = global_definitions.copy()
+
+        excluded_definitions = program_specific_configuration.get(
+            "exclude_definitions", []
+        )
+        if isinstance(excluded_definitions, list):
+            for excluded_definition in excluded_definitions:
+                program_specific_definitions.pop(excluded_definition)
+        else:
+            program_specific_definitions.pop(excluded_definitions)
+
+        programs[path.stem] = program_specific_definitions
+
+    return programs
+
+
+def list_all_binaries(program_definitions: dict[str, dict[str, Any]]) -> list[str]:
+    for program_name, definitions in program_definitions.items():
+        plural_definitions = filter(
+            lambda definition: isinstance(definition, Sequence), definitions.values()
+        )
+
+        print(program_name, *itertools.product(plural_definitions))
+    return []
 
 
 async def main() -> None:
@@ -118,5 +157,7 @@ async def main() -> None:
 
 
 if __name__ == "__main__":
-    build_spec = toml.load(BUILD_SPECIFICATION_FILE)["config"]
-    asyncio.run(main())
+    build_spec = toml.load(BUILD_SPECIFICATION_FILE)
+    program_definitions = list_program_definitions()
+    list_all_binaries(program_definitions)
+    # asyncio.run(main())

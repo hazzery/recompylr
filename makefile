@@ -4,13 +4,13 @@ COMPILER_FLAGS := -Wall -Werror -Wextra -Wpedantic
 LINKER_FLAGS := -lm -lpthread
 
 all:
-	python3 build_all.py
+	@python3 pybuild/build_all.py
 
 run:
-	python3 execute_all.py
+	@python3 pybuild/execute_all.py
 
 draw:
-	python3 draw_graphs.py
+	@python3 pybuild/draw_graphs.py
 
 %.out: %.c
 	gcc $^ $(COMPILER_FLAGS) -D MAX_CHILDREN=12 -D NUMBER_OF_THREADS=12 -o $@ $(LINKER_FLAGS)

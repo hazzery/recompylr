@@ -1,8 +1,27 @@
-[config]
-delimeter = "-"
-extension = ".out"
-directory = "bin"
-logging = false
 example_input_file = "exampleTestCases.txt"
-process_counts = [2, 4, 6, 8, 10, 12, 14, 16, 18, 20]
-thread_counts = [2, 4, 6, 8, 10, 12, 14, 16, 18, 20]
+
+[compilation]
+source_file_directory = "src"
+compiler = "gcc"
+compilation_flags = ["-Wall", "-Werror", "-Wextra", "-Wpedantic"]
+linker_flags = ["-lm", "-lpthread"]
+binary_file_definition_delimeter = "-"
+binary_file_extension = ".out"
+binary_output_directory = "bin"
+
+[compilation.definitions]
+NUMBER_OF_THREADS = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18]
+MAX_CHILDREN = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18]
+LOGGING = true
+
+[compilation.programs.serial]
+exclude_definitions = ["NUMBER_OF_THREADS", "MAX_CHILDREN"]
+
+[compilation.programs.thread]
+exclude_definitions = "MAX_CHILDREN"
+
+[compilation.programs.process]
+exclude_definitions = "NUMBER_OF_THREADS"
+
+# [compilation.programs.processThread]
+# skip = true
