@@ -7,4 +7,4 @@ dependencies = ["toml", "matplotlib"]
 
 [tool.ruff.lint]
 # Enable Pyflakes (`F`) and a subset of the pycodestyle (`E`) codes
-select = ["E4", "E7", "E9", "F", "PL", "UP", "N", "PL", "RUF"]
+select = ["E4", "E7", "E9", "F", "PL", "UP", "N", "PL", "RUF", "D"]
