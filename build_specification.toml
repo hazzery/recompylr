@@ -23,5 +23,5 @@ exclude_definitions = "MAX_CHILDREN"
 [compilation.programs.process]
 exclude_definitions = "NUMBER_OF_THREADS"
 
-# [compilation.programs.processThread]
-# skip = true
+[compilation.programs.processThread]
+skip = true

@@ -3,11 +3,15 @@ import itertools
 import os
 import pathlib
 import subprocess
-from typing import Any, Sequence
+from collections.abc import Iterable, Mapping
+from typing import TypeAlias
 
 import toml
 
 BUILD_SPECIFICATION_FILE = "build_specification.toml"
+
+TomlBaseDataType: TypeAlias = str | int | float | bool
+DefinitionData: TypeAlias = TomlBaseDataType | list[TomlBaseDataType]
 
 
 def source_file(program_name: str) -> str:
@@ -17,81 +21,97 @@ def source_file(program_name: str) -> str:
 
     :return: The name of the source file as a string.
     """
-    return program_name + ".c"
+    return (
+        build_spec["compilation"]["source_file_directory"] + "/" + program_name + ".c"
+    )
 
 
 def binary_file(
     program_name: str,
-    thread_count: int,
-    process_count: int,
+    definition_names: Iterable[str],
+    definition_values: Iterable[DefinitionData],
 ) -> str:
     """Create the name of the binary file to generate for a given program.
 
+    This function builds the filename which should be used for the compiled binary of
+    program ``program_name`` with definitions ``defintion_names``.
+
     :program_name: The name of the source file to compile.
-    :thread_count: The number of threads to allow the program to use.
-    :process_count: The maximum number of children process to allow the program to spawn.
+    :definition_names: An iterable of names to be defined.
+    :definition_values: An iterable of the values each definition should have.
 
     :return: The name of the file as a string.
     """
-    return f"{build_spec['directory']}/{program_name}{build_spec['delimeter']}{thread_count}t-{process_count}p{build_spec['extension']}"
+    directory = build_spec["compilation"]["binary_output_directory"]
+    delimiter = build_spec["compilation"]["binary_file_definition_delimeter"]
+    extension = build_spec["compilation"]["binary_file_extension"]
+    return f"{directory}/{program_name}{delimiter.join(str(value) for value in definition_values)}{extension}"
 
 
 def compilation_command(
     program_name: str,
-    thread_count: int,
-    process_count: int,
+    definition_names: Iterable[str],
+    definition_values: Iterable[DefinitionData],
 ) -> list[str]:
     """Generate the command used to compile the specified program.
 
     :program_name: The name of the source file to compile.
-    :thread_count: The number of threads to allow the program to use.
-    :process_count: The maximum number of children process to allow the program to spawn.
+    :definition_names: An iterable of names to be defined.
+    :definition_values: An iterable of the values each definition should have.
 
-    :return: The shell command as a list of strings
+    :return: The shell command as a list of strings.
     """
-    macro_definitions = []
-
-    if thread_count != 1:
-        macro_definitions.append("-D NUMBER_OF_THREADS=" + str(thread_count))
-
-    if process_count != 1:
-        macro_definitions.append("-D MAX_CHILDREN=" + str(process_count))
-
-    if build_spec["logging"]:
-        macro_definitions.append("-D LOGGING")
-
+    definitions = (
+        f"-D {definition_name}={definition_value}"
+        for definition_name, definition_value in zip(
+            definition_names, definition_values
+        )
+    )
     return [
-        build_spec["compiler"],
+        build_spec["compilation"]["compiler"],
         source_file(program_name),
-        *build_spec["compilation_flags"],
-        *macro_definitions,
+        *build_spec["compilation"]["compilation_flags"],
+        *definitions,
         "-o",
-        binary_file(program_name, thread_count, process_count),
-        *build_spec["linker_flags"],
+        binary_file(program_name, definition_names, definition_values),
+        *build_spec["compilation"]["linker_flags"],
     ]
 
 
 async def compile_program(
     program_name: str,
-    *,
-    thread_count: int = 1,
-    process_count: int = 1,
+    definition_names: Iterable[str],
+    definition_values: Iterable[DefinitionData],
 ) -> None:
     """Execute the compilation of the specified program.
 
     :program_name: The name of the source file to compile.
-    :thread_count: The number of threads to allow the program to use.
-    :process_count: The maximum number of children process to allow the program to spawn.
+    :definition_names: An iterable of names to be defined.
+    :definition_values: An iterable of the values each definition should have.
+
+    The order of the values in the ``definition_values`` iterable should
+    align with the order of the ``definition_names`` iterable. That is
+    the name``next(iter(defintion_names))`` should be defined with the
+    value ``next(iter(definition_values))``. More simply, if the
+    provided iterables were sequences, ``definition_names[0]`` is
+    defined with the value ``definition_values[0]``.
     """
-    task = compilation_command(program_name, thread_count, process_count)
+    task = compilation_command(program_name, definition_names, definition_values)
     print(*task)
     subprocess.run(task, check=False)
 
 
-def list_program_definitions() -> dict[str, dict[str, Any]]:
+def list_program_definitions() -> Mapping[str, Mapping[str, DefinitionData]]:
+    """Generate a dictionary of all programs to compile and the relevant definitions to use.
+
+    :return: A dictionary which maps from a program's name, to another
+    dictionary which maps from a definition's name to its value.
+    """
     programs = {}
 
-    global_definitions: dict[str, Any] = build_spec["compilation"]["definitions"]
+    global_definitions: dict[str, DefinitionData] = build_spec["compilation"][
+        "definitions"
+    ]
     for path in pathlib.Path(
         build_spec["compilation"]["source_file_directory"]
     ).iterdir():
@@ -118,46 +138,97 @@ def list_program_definitions() -> dict[str, dict[str, Any]]:
     return programs
 
 
-def list_all_binaries(program_definitions: dict[str, dict[str, Any]]) -> list[str]:
+DefinitionNames: TypeAlias = tuple[str, ...]
+DefinitionValues: TypeAlias = tuple[DefinitionData, ...]
+ProgramName: TypeAlias = str
+
+
+def list_all_binaries(
+    program_definitions: Mapping[str, Mapping[str, DefinitionData]],
+) -> dict[ProgramName, tuple[DefinitionNames, list[DefinitionValues]]]:
+    """List all of the binaries ``BUILD_SPECIFICATION_FILE`` specifies should be generated.
+
+    :program_definitions: A mapping from a program's name to a mapping
+    from defintion name to its value.
+
+    :return: A dictionary which maps from a programs name to a tuple
+    containing a tuple of the names to be defined in that program's
+    binary, and a list of all variations of the definition's values.
+    """
+    binaries = {}
     for program_name, definitions in program_definitions.items():
-        plural_definitions = filter(
-            lambda definition: isinstance(definition, Sequence), definitions.values()
+        plural_definitions = []
+        inidividuals = []
+        for definition in definitions.values():
+            if isinstance(definition, list):
+                plural_definitions.append(definition)
+            else:
+                inidividuals.append(definition)
+
+        inidividual_definitions = tuple(inidividuals)
+        binaries[program_name] = (
+            tuple(definitions),
+            [
+                (*product, *inidividual_definitions)
+                for product in itertools.product(*plural_definitions)
+            ],
         )
 
-        print(program_name, *itertools.product(plural_definitions))
-    return []
+    return binaries
+
+
+def get_existing_binaries() -> set[pathlib.Path]:
+    """Check the binary output directory for existing binaries.
+
+    :return: A set containg filenames of all existing binaries.
+    """
+    return set(
+        pathlib.Path(build_spec["compilation"]["binary_output_directory"]).iterdir()
+    )
+
+
+def list_binaries_to_compile() -> (
+    dict[ProgramName, tuple[DefinitionNames, list[DefinitionValues]]]
+):
+    """List all binaries which should be compiled.
+
+    :return: A dictionary which maps from a program's name to a tuple
+    containing definition names and their values.
+    """
+    program_specific_definitions = list_program_definitions()
+    binaries = list_all_binaries(program_specific_definitions)
+    existing_binaries = get_existing_binaries()
+
+    for program_name, (
+        definition_names,
+        all_definition_values,
+    ) in binaries.copy().items():
+        binaries[program_name] = (
+            definition_names,
+            [
+                definition_values
+                for definition_values in all_definition_values
+                if binary_file(program_name, definition_names, definition_values)
+                not in existing_binaries
+            ],
+        )
+    return binaries
 
 
 async def main() -> None:
-    tasks = []
+    """Compile all binaries as specified in ``BUILD_SPECIFICATION_FILE``."""
+    binaries = list_binaries_to_compile()
+    os.makedirs(build_spec["compilation"]["binary_output_directory"], exist_ok=True)
 
-    if "thread" not in build_spec["skip"]:
-        tasks += [
-            compile_program("thread", thread_count=thread_count)
-            for thread_count in build_spec["thread_counts"]
-        ]
+    tasks = (
+        compile_program(program_name, definition_names, definition_values)
+        for program_name, (definition_names, all_definition_values) in binaries.items()
+        for definition_values in all_definition_values
+    )
 
-    if "process" not in build_spec["skip"]:
-        tasks += [
-            compile_program("process", process_count=process_count)
-            for process_count in build_spec["process_counts"]
-        ]
-
-    if "processThread" not in build_spec["skip"]:
-        tasks += [
-            compile_program(
-                "processThread", thread_count=thread_count, process_count=process_count
-            )
-            for thread_count in build_spec["thread_counts"]
-            for process_count in build_spec["process_counts"]
-        ]
-
-    os.makedirs(build_spec["directory"], exist_ok=True)
     await asyncio.gather(*tasks)
 
 
 if __name__ == "__main__":
     build_spec = toml.load(BUILD_SPECIFICATION_FILE)
-    program_definitions = list_program_definitions()
-    list_all_binaries(program_definitions)
-    # asyncio.run(main())
+    asyncio.run(main())
