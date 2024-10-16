@@ -14,7 +14,7 @@ TomlBaseDataType: TypeAlias = str | int | float | bool
 DefinitionData: TypeAlias = TomlBaseDataType | list[TomlBaseDataType]
 
 
-def source_file(program_name: str) -> str:
+def source_filename(program_name: str) -> str:
     """Get the name of the source file for the given program.
 
     :program_name: The name of the program to find the source file of.
@@ -76,7 +76,7 @@ def compilation_command(
     )
     return [
         build_spec["compilation"]["compiler"],
-        source_file(program_name),
+        source_filename(program_name),
         *build_spec["compilation"]["compilation_flags"],
         *definitions,
         "-o",
