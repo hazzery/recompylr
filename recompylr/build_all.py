@@ -3,10 +3,13 @@ import itertools
 import os
 import pathlib
 import subprocess
+import sys
 from collections.abc import Iterable, Mapping
 from typing import TypeAlias
 
 import toml
+
+from verify_toml import check_for_property
 
 BUILD_SPECIFICATION_FILE = "build_specification.toml"
 
@@ -48,7 +51,8 @@ def binary_filename(
     delimiter = build_spec["compilation"]["binary_file_definition_delimeter"]
     extension = build_spec["compilation"]["binary_file_extension"]
     definitions = (
-        f"{name}={value}" for name, value in zip(definition_names, definition_values)
+        f"{name}={value}"
+        for name, value in zip(definition_names, definition_values)
     )
     return (
         pathlib.Path(directory)
@@ -104,7 +108,9 @@ async def compile_program(
     provided iterables were sequences, ``definition_names[0]`` is
     defined with the value ``definition_values[0]``.
     """
-    task = compilation_command(program_name, definition_names, definition_values)
+    task = compilation_command(
+        program_name, definition_names, definition_values
+    )
     print(*task)
     subprocess.run(task, check=False)
 
@@ -122,7 +128,7 @@ def list_program_definitions() -> Mapping[str, Mapping[str, DefinitionData]]:
     ]
     for path in pathlib.Path(
         build_spec["compilation"]["source_file_directory"]
-    ).iterdir():
+    ).glob("*.c"):
         program_specific_configuration = (
             build_spec["compilation"].get("programs", {}).get(path.stem, {})
         )
@@ -192,7 +198,9 @@ def get_existing_binaries() -> set[pathlib.Path]:
     """
     try:
         return set(
-            pathlib.Path(build_spec["compilation"]["binary_output_directory"]).iterdir()
+            pathlib.Path(
+                build_spec["compilation"]["binary_output_directory"]
+            ).iterdir()
         )
     except FileNotFoundError:
         return set()
@@ -219,21 +227,70 @@ def list_binaries_to_compile() -> (
             [
                 definition_values
                 for definition_values in all_definition_values
-                if binary_filename(program_name, definition_names, definition_values)
+                if binary_filename(
+                    program_name, definition_names, definition_values
+                )
                 not in existing_binaries
             ],
         )
     return binaries
 
 
+def verify_build_specification() -> None:
+    """Verify that the build specification file is mostly what it needs to be."""
+    required_properties = {
+        "definitions": dict,
+        "source_file_directory": str,
+        "compiler": str,
+        "compilation_flags": (list, str),
+        "linker_flags": (list, str),
+        "binary_file_definition_delimeter": str,
+        "binary_output_directory": str,
+        "binary_file_extension": str,
+    }
+
+    build_specification_errors = []
+
+    check_for_property(
+        build_spec, "compilation", dict, build_specification_errors
+    )
+
+    if len(build_specification_errors) > 0:
+        print(BUILD_SPECIFICATION_FILE, "contained the following errors:")
+        print(*build_specification_errors, sep="\n")
+        sys.exit(1)
+
+    for property_name, property_type in required_properties.items():
+        check_for_property(
+            build_spec["compilation"],
+            property_name,
+            property_type,
+            build_specification_errors,
+        )
+
+    if len(build_specification_errors) > 0:
+        print(
+            "The `compilation` table in",
+            BUILD_SPECIFICATION_FILE,
+            "contained the following errors:",
+        )
+        print(*build_specification_errors, sep="\n")
+        sys.exit(1)
+
+
 async def main() -> None:
     """Compile all binaries as specified in ``BUILD_SPECIFICATION_FILE``."""
     binaries = list_binaries_to_compile()
-    os.makedirs(build_spec["compilation"]["binary_output_directory"], exist_ok=True)
+    os.makedirs(
+        build_spec["compilation"]["binary_output_directory"], exist_ok=True
+    )
 
     tasks = (
         compile_program(program_name, definition_names, definition_values)
-        for program_name, (definition_names, all_definition_values) in binaries.items()
+        for program_name, (
+            definition_names,
+            all_definition_values,
+        ) in binaries.items()
         for definition_values in all_definition_values
     )
 
@@ -241,5 +298,12 @@ async def main() -> None:
 
 
 if __name__ == "__main__":
-    build_spec = toml.load(BUILD_SPECIFICATION_FILE)
+    try:
+        build_spec = toml.load(BUILD_SPECIFICATION_FILE)
+    except FileNotFoundError:
+        print("Could not find", BUILD_SPECIFICATION_FILE)
+        sys.exit(1)
+
+    verify_build_specification()
+
     asyncio.run(main())
