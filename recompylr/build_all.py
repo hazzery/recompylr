@@ -26,15 +26,16 @@ def source_file(program_name: str) -> str:
     )
 
 
-def binary_file(
+def binary_filename(
     program_name: str,
     definition_names: Iterable[str],
     definition_values: Iterable[DefinitionData],
-) -> str:
+) -> pathlib.Path:
     """Create the name of the binary file to generate for a given program.
 
-    This function builds the filename which should be used for the compiled binary of
-    program ``program_name`` with definitions ``defintion_names``.
+    This function builds the filename which should be used for the
+    compiled binary of program ``program_name`` with definitions
+    ``defintion_names``.
 
     :program_name: The name of the source file to compile.
     :definition_names: An iterable of names to be defined.
@@ -45,7 +46,13 @@ def binary_file(
     directory = build_spec["compilation"]["binary_output_directory"]
     delimiter = build_spec["compilation"]["binary_file_definition_delimeter"]
     extension = build_spec["compilation"]["binary_file_extension"]
-    return f"{directory}/{program_name}{delimiter.join(str(value) for value in definition_values)}{extension}"
+    definitions = (
+        f"{name}={value}" for name, value in zip(definition_names, definition_values)
+    )
+    return (
+        pathlib.Path(directory)
+        / f"{program_name}{delimiter}{delimiter.join(definitions)}{extension}"
+    )
 
 
 def compilation_command(
@@ -73,7 +80,7 @@ def compilation_command(
         *build_spec["compilation"]["compilation_flags"],
         *definitions,
         "-o",
-        binary_file(program_name, definition_names, definition_values),
+        binary_filename(program_name, definition_names, definition_values),
         *build_spec["compilation"]["linker_flags"],
     ]
 
@@ -208,7 +215,7 @@ def list_binaries_to_compile() -> (
             [
                 definition_values
                 for definition_values in all_definition_values
-                if binary_file(program_name, definition_names, definition_values)
+                if binary_filename(program_name, definition_names, definition_values)
                 not in existing_binaries
             ],
         )
