@@ -189,9 +189,12 @@ def get_existing_binaries() -> set[pathlib.Path]:
 
     :return: A set containg filenames of all existing binaries.
     """
-    return set(
-        pathlib.Path(build_spec["compilation"]["binary_output_directory"]).iterdir()
-    )
+    try:
+        return set(
+            pathlib.Path(build_spec["compilation"]["binary_output_directory"]).iterdir()
+        )
+    except FileNotFoundError:
+        return set()
 
 
 def list_binaries_to_compile() -> (
