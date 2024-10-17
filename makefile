@@ -4,10 +4,10 @@ COMPILER_FLAGS := -Wall -Werror -Wextra -Wpedantic
 LINKER_FLAGS := -lm -lpthread
 
 all:
-	@python3 pybuild/build_all.py
+	@python3 recompylr/build_all.py
 
 run:
-	@python3 pybuild/execute_all.py
+	@python3 recompylr/execute_all.py
 
 draw:
 	@python3 pybuild/draw_graphs.py
