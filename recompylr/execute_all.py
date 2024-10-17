@@ -9,7 +9,7 @@ import toml
 BUILD_SPECIFICATION_FILE = "build_specification.toml"
 
 ProgramName = str
-BinarySpecifier = tuple[int, int]
+BinarySpecifier = tuple[str, ...]
 TimeReading = tuple[float, float, float]
 
 map: dict[ProgramName, dict[BinarySpecifier, TimeReading]] = {}
@@ -25,7 +25,7 @@ def execution_command(file_name: str) -> list[str]:
         "time",
         "--portability",
         f"--output=txt/{file_name}.txt",
-        f"{build_spec['directory']}/{file_name}",
+        f"{build_spec['compilation']['binary_output_directory']}/{file_name}",
     ]
 
 
@@ -34,14 +34,11 @@ async def time_binary_execution(file_name: str) -> None:
 
     :param file_name: The name of the binary file to execute.
     """
-    program_name, thread_count, process_count = file_name.removesuffix(
-        build_spec["extension"]
-    ).split(build_spec["delimeter"])
+    program_name, *definitions = file_name.removesuffix(
+        build_spec["compilation"]["binary_file_extension"]
+    ).split(build_spec["compilation"]["binary_file_definition_delimeter"])
 
-    binary_specifier = (
-        int(thread_count.removesuffix("t")),
-        int(process_count.removesuffix("p")),
-    )
+    binary_specifier = tuple(definition.split("=")[-1] for definition in definitions)
 
     command = execution_command(file_name)
     print(*command)
@@ -68,7 +65,9 @@ async def time_binary_execution(file_name: str) -> None:
 async def main() -> None:
     tasks = [
         time_binary_execution(file_name)
-        for file_name in os.listdir(build_spec["directory"])
+        for file_name in os.listdir(
+            build_spec["compilation"]["binary_output_directory"]
+        )
     ]
 
     os.makedirs("txt", exist_ok=True)
@@ -85,6 +84,6 @@ async def main() -> None:
 
 
 if __name__ == "__main__":
-    build_spec = toml.load(BUILD_SPECIFICATION_FILE)["config"]
+    build_spec = toml.load(BUILD_SPECIFICATION_FILE)
 
     asyncio.run(main())
