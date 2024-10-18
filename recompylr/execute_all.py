@@ -63,6 +63,7 @@ async def time_binary_execution(file_name: str) -> None:
 
 
 async def main() -> None:
+    """Execute all binaries specified in the build specification."""
     tasks = [
         time_binary_execution(file_name)
         for file_name in os.listdir(
